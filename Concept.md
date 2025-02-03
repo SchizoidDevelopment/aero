@@ -1,13 +1,13 @@
 # Aero: A Theoretical and Practical Examination
 
 ## Abstract
-This document provides an in-depth analysis of a Kotlin-based multiplatform graphical user interface (GUI) framework, architected upon declarative programming paradigms inspired by **Jetpack Compose** and informed by **Apple’s Human Interface Guidelines (HIG)**. The framework is designed to facilitate seamless user interface construction across OpenGL, Skija, and Vulkan while ensuring efficient state management, optimal rendering, and strict adherence to contemporary UX principles. This study delineates the theoretical underpinnings, implementation details, and performance considerations of the framework, offering both conceptual insights and practical applications.
+This document provides an in-depth analysis of a Kotlin-based multiplatform graphical user interface (GUI) framework, architected upon declarative programming paradigms inspired by **Jetpack Compose**.
 
 ## Introduction
 ### Rationale and Design Motivation
-The evolution of modern UI development has necessitated the adoption of declarative paradigms, particularly in the realm of multiplatform applications. Traditional imperative UI programming presents scalability challenges and introduces inefficiencies in state synchronization, necessitating the exploration of functionally-driven solutions. This library leverages the power of **state-driven recomposition**, ensuring minimal computational overhead while maintaining UI consistency.
+The evolution of modern UI development has necessitated the adoption of declarative paradigms, particularly in the realm of multiplatform applications. Traditional imperative UI programming presents significant challenges in terms of state management and code maintainability. By embracing the declarative approach, the Aero framework aims to simplify UI development, enhance code readability, and improve cross-platform compatibility.
 
-Drawing inspiration from **Jetpack Compose**, the framework enables UI elements to be structured as functions, dynamically recalibrating their representation in response to state mutations. Concurrently, Apple’s **Human Interface Guidelines (HIG)** serve as a foundational reference for maintaining platform-native aesthetics and interaction models. This alignment ensures that applications adhere to industry-leading UX principles across disparate operating systems.
+Drawing inspiration from **Jetpack Compose**, the framework enables UI elements to be structured as functions, dynamically recalibrating their representation in response to state mutations. Concurrently, it leverages the power of the Kotlin programming language to deliver a seamless and productive development experience.
 
 ## Key Features
 - **Declarative UI Construction**: UI components are defined as composable functions, facilitating clarity, modularity, and testability.
@@ -18,8 +18,9 @@ Drawing inspiration from **Jetpack Compose**, the framework enables UI elements 
 - **Adherence to Platform UX Guidelines**: Jetpack Compose’s reactive principles and Apple’s HIG serve as referential frameworks for intuitive and aesthetically coherent designs.
 
 ## Architectural Overview
+
 ### Declarative Component Structure
-Each UI component is structured as a **pure function** that derives its presentation from an encapsulated state object. This abstraction enables a reactive UI that dynamically synchronizes with data mutations.
+Each UI component is structured as a **pure function** that derives its presentation from an encapsulated state object. This abstraction enables a reactive UI that dynamically synchronizes with data state changes.
 
 ```kotlin
 @Composable
@@ -52,6 +53,61 @@ sequenceDiagram
 
 This methodology ensures **computational efficiency** by limiting reprocessing operations to **differentially affected components**.
 
+### Separation of Rendering API/Backend
+To enhance modularity and maintainability, the rendering API/backend is separated from the main part of the framework. This is achieved through a sub-Gradle project (e.g., `skija-gl`) that implements the rendering API.
+
+### Compose API Integration
+The compose API is designed to support multiple screens, such as HUD and GUI, which contain windows that can be moved, fixed, hidden, or customized in various ways. This flexibility allows developers to create dynamic and interactive user interfaces.
+
+```kotlin
+@Composable
+fun MainScreen() {
+    Screen(title = "Main Screen") {
+        Window(title = "Main Window", movable = true, fixed = false, hideable = true) {
+            // Window content here
+        }
+        Window(title = "HUD", movable = false, fixed = true, hideable = true) {
+            // HUD content here
+        }
+    }
+}
+```
+
+### Runtime Modifiable Flags
+The framework includes flags that can be modified at runtime, allowing seamless adjustments to the application's behavior and appearance without requiring a restart.
+
+```kotlin
+var darkModeEnabled by remember { mutableStateOf(false) }
+
+@Composable
+fun SettingsScreen() {
+    Switch(
+        checked = darkModeEnabled,
+        onCheckedChange = { darkModeEnabled = it },
+        label = { Text("Enable Dark Mode") }
+    )
+}
+```
+
+### Event Handling and Settings
+To handle key presses and other events, the framework provides a mechanism to define and manage event listeners. There are settings available to enable or disable specific event listeners at runtime.
+
+```kotlin
+var listenToKeyEvents by remember { mutableStateOf(true) }
+
+@Composable
+fun EventHandlingScreen() {
+    if (listenToKeyEvents) {
+        // Logic for handling key presses
+    }
+    Switch(
+        checked = listenToKeyEvents,
+        onCheckedChange = { listenToKeyEvents = it },
+        label = { Text("Enable Key Event Listening") }
+    )
+}
+```
+
 ## Practical Implementations
 ### Case Study: Dynamic Todo List
 ```kotlin
@@ -63,7 +119,7 @@ fun TodoApp() {
     Column {
         TextField(value = newTodo, onValueChange = { newTodo = it })
         Button("Add Todo") {
-            if (newTodo.isNotBlank()) {
+            if (newTodo isNotBlank()) {
                 todos = todos + newTodo
                 newTodo = ""
             }
@@ -125,4 +181,3 @@ fun LargeList(items: List<String>) {
 ```
 
 Through **lazy rendering**, inactive list elements are deferred until explicitly required, conserving memory and processing resources.
-
