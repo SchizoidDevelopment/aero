@@ -5,14 +5,16 @@ build/
 !**/src/test/**/build/
 
 ### IntelliJ IDEA ###
-.idea/*
-!.idea/copyright/*
+.idea
 *.iws
 *.iml
 *.ipr
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
+
+### Kotlin ###
+.kotlin
 
 ### Eclipse ###
 .apt_generated
